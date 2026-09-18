@@ -36,6 +36,14 @@ describe("analyzeJob", () => {
     assert.equal(analysis.isVague, false);
     assert.equal(analysis.jobType, "field-service");
   });
+
+  it("treats a short generic MVP post as vague", () => {
+    const analysis = analyzeJob(
+      "Need a full-stack web app MVP built from scratch. Looking for someone to start soon. Budget is open. Please apply if you want to build a SaaS product.",
+    );
+    assert.equal(analysis.isVague, true);
+    assert.equal(analysis.jobType, "vague");
+  });
 });
 
 describe("composeProposal", () => {

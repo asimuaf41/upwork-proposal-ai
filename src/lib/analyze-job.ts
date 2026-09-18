@@ -554,7 +554,7 @@ export function analyzeJob(jd: string): JobAnalysis {
   }
 
   const isVague =
-    jobType === "vague" &&
+    (jobType === "vague" || jobType === "fullstack-mvp") &&
     !requiredHasStrong &&
     screeningQuestions.length === 0 &&
     text.length < 500;
@@ -583,7 +583,7 @@ export function analyzeJob(jd: string): JobAnalysis {
 
   return {
     filterWord,
-    jobType: isVague && jobType === "fullstack-mvp" ? "vague" : jobType,
+    jobType: isVague ? "vague" : jobType,
     fit,
     fitReasons,
     skipReasons: uniqueSkip,
