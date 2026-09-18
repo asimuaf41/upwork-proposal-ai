@@ -30,9 +30,9 @@ describe("analyzeJob", () => {
     assert.ok(analysis.fit === "strong" || analysis.fit === "partial");
   });
 
-  it("detects DISPATCH filter on field service jobs", () => {
+  it("does not treat a short field-service post as vague", () => {
     const analysis = analyzeJob(SAMPLE_JOBS[2].text);
-    assert.equal(analysis.filterWord, "DISPATCH");
+    assert.equal(analysis.isVague, false);
     assert.equal(analysis.jobType, "field-service");
   });
 });
@@ -73,6 +73,23 @@ describe("composeProposal", () => {
     assert.ok(!/\bfree\b/i.test(proposal));
     assert.ok(!/discount/i.test(proposal));
     assert.ok(/How do you take over/i.test(proposal));
+  });
+
+  it("writes a skip note instead of a Next.js bid for Laravel jobs", () => {
+    const proposal = composeProposal(
+      analyzeJob(
+        "Looking for a Laravel PHP developer to build a CMS. Must have 5 years Laravel. No React.",
+      ),
+    );
+    assert.ok(proposal.startsWith("Do not apply."));
+    assert.ok(!/app\.ourmethod\.com/.test(proposal));
+    assert.ok(!/Happy to start with a small paid milestone/.test(proposal));
+  });
+
+  it("does not duplicate field service in the opening", () => {
+    const proposal = composeProposal(analyzeJob(SAMPLE_JOBS[2].text));
+    assert.ok(!/field service field service/i.test(proposal));
+    assert.ok(/dispatcher|technician|OptiField/i.test(proposal));
   });
 
   it("keeps boost messages short", () => {

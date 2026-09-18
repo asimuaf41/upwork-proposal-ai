@@ -275,9 +275,10 @@ function extractFilterWord(jd: string): string | null {
 }
 
 function scoreJobType(jd: string): JobType {
+  const cleaned = stripNegatedStack(jd);
   let best: { type: JobType; score: number } = { type: "vague", score: 0 };
   for (const row of JOB_TYPE_KEYWORDS) {
-    const hits = jd.match(new RegExp(row.keywords, "gi"));
+    const hits = cleaned.match(new RegExp(row.keywords, "gi"));
     const score = (hits?.length ?? 0) * row.weight;
     if (score > best.score) best = { type: row.type, score };
   }
@@ -542,8 +543,10 @@ export function analyzeJob(jd: string): JobAnalysis {
   }
 
   const isVague =
-    text.length < 350 ||
-    (!requiredHasStrong && jobType === "vague" && screeningQuestions.length === 0);
+    jobType === "vague" &&
+    !requiredHasStrong &&
+    screeningQuestions.length === 0 &&
+    text.length < 500;
 
   let budgetWarning: string | null = null;
   if (budgetAmount !== null) {

@@ -9,24 +9,30 @@ import {
 } from "./profile";
 import { firstContentWord, wordCount } from "./word-count";
 
-function industryPhrase(analysis: JobAnalysis): string {
-  if (analysis.industry) return analysis.industry;
-  return analysis.productHint;
+function labeledProduct(analysis: JobAnalysis): string {
+  const product = analysis.productHint;
+  const industry = analysis.industry;
+  if (!industry) return product;
+  if (product.toLowerCase().includes(industry.toLowerCase())) return product;
+  return `${industry} ${product}`;
 }
 
 function craftOpening(analysis: JobAnalysis): string {
-  const product = analysis.productHint;
-  const industry = industryPhrase(analysis);
+  const product = labeledProduct(analysis);
   const mirror = analysis.mirrorTerms[0];
 
+  if (analysis.jobType === "field-service") {
+    return "A field service platform with technician scheduling, dispatch, and invoicing is exactly the product shape I am currently building.";
+  }
+
   const byAction: Record<string, string> = {
-    stabilize: `Stabilizing this ${industry} ${product === industry ? "product" : product} — and shipping what the last developer could not — is production Next.js work I already own for US clients.`,
+    stabilize: `Stabilizing this ${product} — and shipping what the last developer could not — is production Next.js work I already own for US clients.`,
     takeover: `Taking over this ${product} and making the codebase production-safe is how I work: read the architecture first, then fix what is actually breaking.`,
     audit: `A structured technical audit of this ${product} — severity ratings and written findings before any code changes — is the process I used on a large real estate operations platform.`,
     "integrate-ai": `An AI layer that can read your documents, call tools, and stream answers inside a ${product} is the architecture I already shipped in production.`,
     automate: `Workflow automation around this ${product} — n8n plus a proper Next.js/Node layer when the workflow has to be a product, not a zap — is in-stack.`,
-    build: `Building this ${industry} ${product === industry ? "application" : product} as a production Next.js system, not a demo, is the kind of full-stack delivery I run end-to-end.`,
-    unknown: `A ${industry} ${product} that needs to ship and stay stable is the work I take from first commit through production.`,
+    build: `Building this ${product} as a production Next.js system, not a demo, is the kind of full-stack delivery I run end-to-end.`,
+    unknown: `A ${product} that needs to ship and stay stable is the work I take from first commit through production.`,
   };
 
   let opening = byAction[analysis.primaryAction] ?? byAction.unknown;
@@ -306,7 +312,22 @@ function longTermLine(analysis: JobAnalysis): string | null {
   return SCREENING_ANSWERS.longTerm;
 }
 
+function composeSkipNote(analysis: JobAnalysis): string {
+  const reasons = analysis.skipReasons
+    .map((r) => r.replace(/\.+$/, ""))
+    .join(". ");
+  return [
+    "Do not apply.",
+    `${reasons || "Required stack is outside the offer"}. Do not send a proposal that fakes the skill.`,
+    "If they repost this as React, Next.js, Node, Supabase, or Claude/RAG work, it becomes a fit — until then, skip.",
+  ].join("\n\n");
+}
+
 export function composeProposal(analysis: JobAnalysis): string {
+  if (analysis.fit === "skip") {
+    return composeSkipNote(analysis);
+  }
+
   const parts: string[] = [];
 
   if (analysis.filterWord) {
@@ -342,6 +363,13 @@ export function composeProposal(analysis: JobAnalysis): string {
 }
 
 export function composeBoost(analysis: JobAnalysis): { subject: string; message: string } {
+  if (analysis.fit === "skip") {
+    return {
+      subject: "Do not apply — outside stack",
+      message:
+        "Do not send a boost on this post. The required stack is outside the offer.",
+    };
+  }
   if (analysis.jobType === "ai-agent") {
     return {
       subject: "Top Rated Plus — Claude API, RAG, Next.js",

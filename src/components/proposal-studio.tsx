@@ -305,7 +305,11 @@ export function ProposalStudio() {
             <>
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 <FitBadge fit={result.analysis.fit} />
-                <Badge variant="outline">{jobTypeLabel(result.analysis.jobType)}</Badge>
+                <Badge variant="outline">
+                  {result.analysis.fit === "skip"
+                    ? "Outside stack"
+                    : jobTypeLabel(result.analysis.jobType)}
+                </Badge>
                 <Badge variant="secondary">{result.wordCount} words</Badge>
                 <Badge variant="ghost">{sourceLabel}</Badge>
                 {result.analysis.filterWord ? (
@@ -321,8 +325,9 @@ export function ProposalStudio() {
                   <div>
                     <p className="font-medium">Skip this job.</p>
                     <p>
-                      {result.analysis.skipReasons.join(" ") ||
-                        "Required stack is outside the offer."}{" "}
+                      {result.analysis.skipReasons.length
+                        ? `${result.analysis.skipReasons.map((r) => r.replace(/\.+$/, "")).join(". ")}.`
+                        : "Required stack is outside the offer."}{" "}
                       Do not send a proposal that fakes the skill.
                     </p>
                   </div>
@@ -348,14 +353,16 @@ export function ProposalStudio() {
                     <TabsTrigger value="fit">Fit notes</TabsTrigger>
                   </TabsList>
                   <div className="flex gap-1.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copy(result.proposal, "proposal")}
-                    >
-                      {copied === "proposal" ? <Check /> : <Copy />}
-                      Copy proposal
-                    </Button>
+                    {result.analysis.fit === "skip" ? null : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copy(result.proposal, "proposal")}
+                      >
+                        {copied === "proposal" ? <Check /> : <Copy />}
+                        Copy proposal
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -390,19 +397,21 @@ export function ProposalStudio() {
                       </p>
                       <p className="text-sm leading-6">{result.boost.message}</p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        copy(
-                          `${result.boost.subject}\n\n${result.boost.message}`,
-                          "boost",
-                        )
-                      }
-                    >
-                      {copied === "boost" ? <Check /> : <Copy />}
-                      Copy boost
-                    </Button>
+                    {result.analysis.fit === "skip" ? null : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          copy(
+                            `${result.boost.subject}\n\n${result.boost.message}`,
+                            "boost",
+                          )
+                        }
+                      >
+                        {copied === "boost" ? <Check /> : <Copy />}
+                        Copy boost
+                      </Button>
+                    )}
                   </div>
                 </TabsContent>
 
@@ -508,7 +517,14 @@ function EmptyState() {
 function FitNotes({ analysis }: { analysis: JobAnalysis }) {
   return (
     <div className="space-y-4 rounded-xl border border-border/80 bg-card/50 p-4 text-sm">
-      <Row label="Job type" value={jobTypeLabel(analysis.jobType)} />
+      <Row
+        label="Job type"
+        value={
+          analysis.fit === "skip"
+            ? "Outside stack"
+            : jobTypeLabel(analysis.jobType)
+        }
+      />
       <Row label="Action" value={analysis.primaryAction} />
       <Row label="Product" value={analysis.productHint} />
       {analysis.industry ? <Row label="Industry" value={analysis.industry} /> : null}
