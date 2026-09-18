@@ -327,7 +327,18 @@ function detectProduct(jd: string): string {
   return "web application";
 }
 
+function stripFilterInstructions(jd: string): string {
+  return jd
+    .replace(
+      /(?:please\s+)?(?:start|begin)\s+(?:your\s+)?(?:proposal|cover letter|message|application|bid)\s+with[^\n.]*[.\n]?/gi,
+      " ",
+    )
+    .replace(/start\s+with(?:\s+the(?:\s+exact)?\s+word)?[^\n.]*[.\n]?/gi, " ")
+    .replace(/so we know you read this[^\n.]*[.\n]?/gi, " ");
+}
+
 function detectIndustry(jd: string): string {
+  const text = stripFilterInstructions(jd);
   const industries: [RegExp, string][] = [
     [/real estate|proptech/i, "real estate"],
     [/field service|hvac|plumbing|technician/i, "field service"],
@@ -339,7 +350,7 @@ function detectIndustry(jd: string): string {
     [/logistics|freight/i, "logistics"],
   ];
   for (const [re, label] of industries) {
-    if (re.test(jd)) return label;
+    if (re.test(text)) return label;
   }
   return "";
 }

@@ -14,6 +14,7 @@ describe("analyzeJob", () => {
     assert.equal(analysis.fit, "strong");
     assert.equal(analysis.asksForRate, true);
     assert.equal(analysis.isLongTerm, true);
+    assert.notEqual(analysis.industry, "healthcare");
   });
 
   it("flags Laravel-only jobs as skip", () => {
